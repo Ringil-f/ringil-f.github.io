@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <title>My experiment</title>
+    <script src="https://unpkg.com/jspsych@7.1.2"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.0.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-audio-slider-response@1.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-survey-text@1.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-audio-button-response@1.2.0"></script>
+    <link href="https://unpkg.com/jspsych@7.1.2/css/jspsych.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body></body>
+  <script>
+    /* initialize jsPsych */
+    var jsPsych = initJsPsych({
+      on_finish:function(){
+        jsPsych.data.get().localSave('csv','mydata.csv');
+      },
+      show_progress_bar: false,
+      message_progress_bar: '实验进度Progress'
+    });
+
+    /* create timeline */
+    var timeline = [];
+
+    var preload = {
+      type: jsPsychPreload,
+      audio: ['audio/a低平.wav','audio/a中平.wav','audio/a高平.wav','audio/i低平.wav','audio/i中平.wav','audio/i高平.wav','audio/u低平.wav','audio/u中平.wav','audio/u高平.wav','audio/a升.wav','audio/a降.wav','audio/a平.wav','audio/a凹.wav','audio/a凸.wav','audio/i升.wav','audio/i降.wav','audio/i平.wav','audio/i凹.wav','audio/i凸.wav','audio/u升.wav','audio/u降.wav','audio/u平.wav','audio/u凹.wav','audio/u凸.wav'],
+      show_progress_bar:false,
+    };
+    timeline.push(preload);
+
+
+    /* define welcome message trial */
+    var welcome = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+      <p>欢迎参与本次实验！Welcome to participate in this experiment!</p>
+      <p style="font-size:15px;color:red;">按任意键继续Press any key to continue.</p>
+      `
+    };
+    timeline.push(welcome);
+
+    var info = {
+       type: jsPsychSurveyText,
+       questions: [
+          {prompt: '<p>请输入您的年龄</p><p>Please enter your age</p>', required: true},
+          {prompt: '<p>请输入您的性别（男/女）</p><p>Please enter your sex (Male/Felmale)</p>', required: true},
+          {prompt: '<p>请输入您的手机号后4位（仅用于区分数据）</p><p>Please enter the last 4 digits of your phone number (used only to distinguish data)</p>',required: true}
+        ],
+        button_label:'继续 Continue',
+    }
+    timeline.push(info);
+
+
+    var instructions = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <p style="font-weight:bold;">实验须知：</p>
+        <p style="font-size:15px;">1. 在本实验中，您将听到随机的音频，请根据您的直觉将所听到的音频和图片选项进行配对，您可以重复选择相同的选项。</p>
+        <p style="font-size:15px;">2. 为了实验的顺利进行，请确保您使用电脑完成实验，并将实验页面全屏显示。</p>
+        <p style="font-size:15px;">3. 请确保您的电脑音量合适，在音频播放完毕后，点击对应的选项作答，每道题目点击一次即可。</p>
+        <p style="font-size:15px;">4. 实验结束后，浏览器将自动下载您的作答数据为一个csv文件。请您将文件发送到主试的邮箱或微信。</p>
+        <p></p>
+        <p style="font-weight:bold;">Experiment Instructions:</p>
+        <p style="font-size:15px;">1. In this experiment, you will hear random audio clips. Please intuitively match the audio you hear with the corresponding picture option. You may select the same option multiple times.</p>
+        <p style="font-size:15px;">2. To ensure the experiment runs smoothly, please use a computer to complete the experiment and display the experiment page in full screen.</p>
+        <p style="font-size:15px;">3. Please ensure your computer volume is at a comfortable level. After the audio finishes playing, click on the corresponding option to submit your answer. Each question only requires one click.</p>
+        <p style="font-size:15px;">4. Upon completion of the experiment, your browser will automatically download your response data as a CSV file. Please send this file to the experimenter's email or WeChat.</p>
+        <p></p>
+        <p style="font-size:15px;color:red;">按任意键继续Press any key to continue</p>
+        `,
+      };
+    timeline.push(instructions);
+
+    var testvolume = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <p style="font-weight:bold;">示例环节</p>
+        <p>接下来是一道示例题目，您可以在这一阶段调整您的设备音量使声音清晰</p>
+        <p>Next is an example question. During this stage, you may adjust your device's volume to ensure the audio is clear.</p>
+        <p>该环节的作答仅用于示例操作</p>
+        <p>The responses in this section are solely for demonstrating the procedure.</p>
+        <p></p>
+        <p style="font-size:15px;color:red;">按任意键继续Press any key to continue</p>
+        `,
+      };
+    timeline.push(testvolume);
+
+    var testvolume_try = {
+    type: jsPsychAudioButtonResponse,
+    stimulus: 'audio/lionsound.mp3',
+    choices: ['Graph/tstA.jpg"', 'Graph/tstB.jpg', 'Graph/tstC.jpg'],
+    prompt: "<p>这个声音是哪个动物发出的？</p><p>Which animal made the sound?</p>",
+    button_html: '<img src="%choice%" />'
+    };
+    timeline.push(testvolume_try);
+
+  
+    var startsign = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <p style="font-weight:bold;">实验开始</p>
+        <p style="font-weight:bold;">Experiment Starts</p>
+        <p style="font-size:15px;color:red;">按任意键继续Press any key to continue</p>
+        `,
+      };
+    timeline.push(startsign);
+
+    var first_testprocedure = {
+      timeline:[
+        {
+          type: jsPsychAudioButtonResponse,
+          stimulus: jsPsych.timelineVariable('audiofile'),
+          choices: ['Graph/实验1a.jpg"', 'Graph/实验1b.jpg', 'Graph/实验1c.jpg', 'Graph/实验1d.jpg'],
+          prompt: "<p>请根据直觉选择与声音配对的图片选项，点击对应图片一次即可</p><p>Please intuitively select the picture option that pairs with the sound. Click on the corresponding image once to submit your choice.</p>",
+          button_html: '<img src="%choice%" />'
+        }
+      ],
+      timeline_variables:[
+        {audiofile:'audio/a低平.wav'},
+        {audiofile:'audio/a中平.wav'},
+        {audiofile:'audio/a高平.wav'},
+        {audiofile:'audio/i低平.wav'},
+        {audiofile:'audio/i中平.wav'},
+        {audiofile:'audio/i高平.wav'},
+        {audiofile:'audio/u低平.wav'},
+        {audiofile:'audio/u中平.wav'},
+        {audiofile:'audio/u高平.wav'},
+      ],
+      randomize_order:true  
+    };
+    timeline.push(first_testprocedure);
+
+
+    var second_testprocedure = {
+      timeline:[
+        {
+          type: jsPsychAudioButtonResponse,
+          stimulus: jsPsych.timelineVariable('audiofile'),
+          choices: ['Graph/实验2a.jpg"', 'Graph/实验2b.jpg', 'Graph/实验2c.jpg', 'Graph/实验2d.jpg', 'Graph/实验2e.jpg'],
+          prompt: "<p>请根据直觉选择与声音配对的图片选项，点击对应图片一次即可</p><p>Please intuitively select the picture option that pairs with the sound. Click on the corresponding image once to submit your choice.</p>",
+          button_html: '<img src="%choice%" />'
+        }
+      ],
+      timeline_variables:[
+        {audiofile:'audio/a升.wav'},
+        {audiofile:'audio/a降.wav'},
+        {audiofile:'audio/a平.wav'},
+        {audiofile:'audio/a凹.wav'},
+        {audiofile:'audio/a凸.wav'},
+        {audiofile:'audio/i升.wav'},
+        {audiofile:'audio/i降.wav'},
+        {audiofile:'audio/i平.wav'},
+        {audiofile:'audio/i凹.wav'},
+        {audiofile:'audio/i凸.wav'},
+        {audiofile:'audio/u升.wav'},
+        {audiofile:'audio/u降.wav'},
+        {audiofile:'audio/u平.wav'},
+        {audiofile:'audio/u凹.wav'},
+        {audiofile:'audio/u凸.wav'},
+      ],
+      randomize_order:true  
+    };
+    timeline.push(second_testprocedure);
+
+
+    var ending = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `<p>实验结束，请按任意键，浏览器将会自动下载实验数据表，请您将文件发送给主试。</p>
+                 <p style="color:blue;">邮箱:2922476757@qq.com  微信：hkx2922476757</p>
+                 <p>被试费将在核对后发放。</p>
+                 <p>感谢您的参与！</p>
+                 <p style="font-size:20px;color:red;">按任意键下载数据表</p>
+                 <p></p>
+                 <p>The experiment has concluded. Please press any key, and your browser will automatically download the experimental data sheet. Please send the file to the experimenter.</p>
+                 <p style="color:blue;">Email: 2922476757@qq.com   WeChat: hkx2922476757</p>
+                 <p>The participant fee will be disbursed upon verification.</p>
+                 <p>Thank you for your participation!</p>
+                 <p style="font-size:20px;color:red">Press any key to download the data sheet</p>
+                `
+    };
+    timeline.push(ending);
+
+  
+    
+    jsPsych.run(timeline);
+    
+  </script>
+</html>
