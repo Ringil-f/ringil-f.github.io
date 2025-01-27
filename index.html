@@ -99,15 +99,15 @@
     timeline.push(testvolume_try);
 
   
-    var startsign = {
+    var first_startsign = {
       type: jsPsychHtmlKeyboardResponse,
       stimulus: `
-        <p style="font-weight:bold;">实验开始</p>
-        <p style="font-weight:bold;">Experiment Starts</p>
+        <p style="font-weight:bold;">实验1开始</p>
+        <p style="font-weight:bold;">Experiment 1 Starts</p>
         <p style="font-size:15px;color:red;">按任意键继续Press any key to continue</p>
         `,
       };
-    timeline.push(startsign);
+    timeline.push(first_startsign);
 
     var first_testprocedure = {
       timeline:[
@@ -134,6 +134,15 @@
     };
     timeline.push(first_testprocedure);
 
+    var second_startsign = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+        <p style="font-weight:bold;">实验2开始</p>
+        <p style="font-weight:bold;">Experiment 2 Starts</p>
+        <p style="font-size:15px;color:red;">按任意键继续Press any key to continue</p>
+        `,
+      };
+    timeline.push(second_startsign);
 
     var second_testprocedure = {
       timeline:[
