@@ -28,7 +28,7 @@
     var preload = {
       type: jsPsychPreload,
       audio: ['audio/a低平.wav','audio/a中平.wav','audio/a高平.wav','audio/i低平.wav','audio/i中平.wav','audio/i高平.wav','audio/u低平.wav','audio/u中平.wav','audio/u高平.wav','audio/a升.wav','audio/a降.wav','audio/a平.wav','audio/a凹.wav','audio/a凸.wav','audio/i升.wav','audio/i降.wav','audio/i平.wav','audio/i凹.wav','audio/i凸.wav','audio/u升.wav','audio/u降.wav','audio/u平.wav','audio/u凹.wav','audio/u凸.wav'],
-      show_progress_bar:false,
+      show_progress_bar:true,
     };
     timeline.push(preload);
 
@@ -48,7 +48,8 @@
        questions: [
           {prompt: '<p>请输入您的年龄</p><p>Please enter your age</p>', required: true},
           {prompt: '<p>请输入您的性别（男/女）</p><p>Please enter your sex (Male/Felmale)</p>', required: true},
-          {prompt: '<p>请输入您的手机号后4位（仅用于区分数据）</p><p>Please enter the last 4 digits of your phone number (used only to distinguish data)</p>',required: true}
+          {prompt: '<p>请输入您的手机号后4位（仅用于区分数据）</p><p>Please enter the last 4 digits of your phone number (used only to distinguish data)</p>',required: true},
+          {prompt: '<p>请输入您的姓名（选填）</p><p>Please enter your name (Optional)</p>', required: false}
         ],
         button_label:'继续 Continue',
     }
