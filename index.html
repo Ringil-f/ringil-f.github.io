@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <title>语音评价实验</title>
+    <script src="https://unpkg.com/jspsych@7.1.2"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@1.0.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-audio-keyboard-response@1.0.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-preload@1.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-survey-text@1.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.0.0"></script>
+    <link href="https://unpkg.com/jspsych@7.1.2/css/jspsych.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body></body>
+  <script>
+    const jsPsych = initJsPsych({
+      on_finish: function() {
+        const data = jsPsych.data.get().filter({record: true});
+        data.localSave('csv', '语音评价数据.csv');
+      },
+      show_progress_bar: true,
+      message_progress_bar: '实验进度'
+    });
+
+    const timeline = [];
+
+    // ========== 预加载 ==========
+    timeline.push({
+      type: jsPsychPreload,
+      audio: [
+        'audio/DOTH1.wav','audio/DOTH2.wav','audio/DOTH3.wav',
+        'audio/KHU1.wav','audio/KHU2.wav','audio/KHU3.wav',
+        'audio/KLIN1.wav','audio/KLIN2.wav','audio/KLIN3.wav',
+        'audio/NAVI1.wav','audio/NAVI2.wav','audio/NAVI3.wav',
+        'audio/QUEN1.wav','audio/QUEN2.wav','audio/QUEN3.wav',
+        'audio/SIN1.wav','audio/SIN2.wav','audio/SIN3.wav',
+        'audio/VAL1.wav','audio/VAL2.wav','audio/VAL3.wav',
+        'audio/testvolume.wav'
+      ],
+      show_progress_bar: true
+    });
+
+    // ========== 欢迎页 ==========
+    timeline.push({
+      type: jsPsychHtmlButtonResponse,
+      stimulus: `
+        <h2>欢迎参加实验</h2>
+        <p style="color: #666;">请确保在安静的环境中进行实验，并确保实验界面全屏显示</p>
+      `,
+      choices: ['继续']
+    });
+
+    // ========== 基本信息收集 ==========
+    timeline.push({
+      type: jsPsychSurveyText,
+      questions: [
+        {prompt: '请输入您的年龄', required: true},
+        {prompt: '请输入您的性别（男/女）', required: true},
+        {prompt: '请输入手机尾号后4位', required: true}
+      ],
+      button_label: '提交信息'
+    });
+
+    // ========== 实验说明 ==========
+    timeline.push({
+      type: jsPsychHtmlButtonResponse,
+      stimulus: `
+        <div style="max-width:800px;margin:0 auto">
+          <h3>实验说明</h3>
+          <p>1. 您将听到一系列语音音频片段，每一片段仅播放一遍</p>
+          <p>2. 每个音频需要从四个维度进行评分，请拖动评分条进行评分</p>
+          <p>3. 请在录音播放完毕后再进行判断</p>
+          <p>4. 请根据第一直觉快速作答</p>
+        </div>
+      `,
+      choices: ['继续']
+    });
+
+    // ========== 音量测试说明 ==========
+    timeline.push({
+      type: jsPsychHtmlButtonResponse,
+      stimulus: `
+        <h3>音量测试</h3>
+        <p>接下来将播放测试音频，请在此阶段将设备音量调整到合适大小</p>
+      `,
+      choices: ['开始音量测试']
+    });
+
+    // ========== 音量测试试次 ==========
+    timeline.push({
+      type: jsPsychHtmlButtonResponse,
+      stimulus: `
+        <div id="audio-prompt">请点击播放按钮测试音量</div>
+        <button id="play-btn" class="jspsych-btn">播放</button>
+        <div id="sliders" style="display:none;">
+          ${createSlidersHTML()}
+        </div>
+        <button id="continue-btn" class="jspsych-btn" style="display:none;" disabled>继续</button>
+      `,
+      choices: [], // 空数组表示不使用默认按钮
+      on_load: function() {
+        initSliders();
+        const audio = new Audio('audio/testvolume.wav');
+        const playBtn = document.getElementById('play-btn');
+        const continueBtn = document.getElementById('continue-btn');
+        
+        // 播放按钮点击事件
+        playBtn.addEventListener('click', () => {
+          audio.play();
+          playBtn.style.display = 'none';
+          document.getElementById('audio-prompt').innerHTML = '测试音频播放中...';
+          document.getElementById('sliders').style.display = 'block';
+          continueBtn.style.display = 'inline';
+          
+          // 音频播放结束事件
+          audio.addEventListener('ended', () => {
+            continueBtn.disabled = false;
+            document.getElementById('audio-prompt').innerHTML = '请确认评分：';
+          });
+        });
+        
+        // 继续按钮点击事件
+        continueBtn.addEventListener('click', () => {
+          const sliders = document.querySelectorAll('.slider');
+          const ratings = Array.from(sliders).map(s => s.value);
+          jsPsych.data.get().addToLast({
+            ratings: JSON.stringify(ratings),
+            audio_id: 'testvolume'
+          });
+          jsPsych.finishTrial();
+        });
+      },
+      data: {record: false}
+    });
+
+    // ========== 正式实验 ==========
+    timeline.push({
+      type: jsPsychHtmlButtonResponse,
+      stimulus: `
+        <h3 style="color:green;">正式实验开始</h3>
+      `,
+      choices: ['开始']
+    });
+
+    // 生成正式实验试次
+    const trials = [
+      'DOTH1','DOTH2','DOTH3','KHU1','KHU2','KHU3',
+      'KLIN1','KLIN2','KLIN3','NAVI1','NAVI2','NAVI3',
+      'QUEN1','QUEN2','QUEN3','SIN1','SIN2','SIN3',
+      'VAL1','VAL2','VAL3'
+    ].map(name => ({
+      audio: `audio/${name}.wav`,
+      id: name
+    }));
+
+    trials.forEach(trial => {
+      timeline.push({
+        type: jsPsychHtmlButtonResponse,
+        stimulus: `
+          <div id="audio-prompt">请点击播放按钮开始收听</div>
+          <button id="play-btn" class="jspsych-btn">播放</button>
+          <div id="sliders" style="display:none;">
+            ${createSlidersHTML()}
+          </div>
+          <button id="continue-btn" class="jspsych-btn" style="display:none;" disabled>继续</button>
+        `,
+        choices: [], // 空数组表示不使用默认按钮
+        on_load: function() {
+          initSliders();
+          const audio = new Audio(trial.audio);
+          const playBtn = document.getElementById('play-btn');
+          const continueBtn = document.getElementById('continue-btn');
+          
+          // 播放按钮点击事件
+          playBtn.addEventListener('click', () => {
+            audio.play();
+            playBtn.style.display = 'none';
+            document.getElementById('audio-prompt').innerHTML = '音频播放中...';
+            document.getElementById('sliders').style.display = 'block';
+            continueBtn.style.display = 'inline';
+            
+            // 音频播放结束事件
+            audio.addEventListener('ended', () => {
+              continueBtn.disabled = false;
+              document.getElementById('audio-prompt').innerHTML = '请确认评分：';
+            });
+          });
+          
+          // 继续按钮点击事件
+          continueBtn.addEventListener('click', () => {
+            const sliders = document.querySelectorAll('.slider');
+            const ratings = Array.from(sliders).map(s => s.value);
+            jsPsych.data.get().addToLast({
+              ratings: JSON.stringify(ratings),
+              audio_id: trial.id
+            });
+            jsPsych.finishTrial();
+          });
+        },
+        data: {
+          audio_id: trial.id,
+          record: true
+        }
+      });
+    });
+
+    // ========== 结束页 ==========
+    timeline.push({
+      type: jsPsychHtmlButtonResponse,
+      stimulus: `
+        <div style="text-align:center;padding:50px">
+          <h2>实验完成！</h2>
+          <p>感谢您的参与</p>
+          <p>数据已自动下载（语音评价数据.csv）</p>
+          <p style="color:blue;">请将文件发送至：2922476757@qq.com</p>
+        </div>
+      `,
+      choices: ['关闭页面']
+    });
+
+    // ========== 工具函数 ==========
+    function createSlidersHTML() {
+      return `
+        <div class="slider-container">
+          <div class="slider-item">
+            <div class="slider-labels">
+              <span>有攻击性</span>
+              <span>温和</span>
+            </div>
+            <div class="slider-wrapper">
+              <input type="range" class="slider" min="1" max="7" value="4" step="1">
+              <div class="slider-ticks">
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="slider-item">
+            <div class="slider-labels">
+              <span>粗鄙</span>
+              <span>优雅</span>
+            </div>
+            <div class="slider-wrapper">
+              <input type="range" class="slider" min="1" max="7" value="4" step="1">
+              <div class="slider-ticks">
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="slider-item">
+            <div class="slider-labels">
+              <span>冷漠</span>
+              <span>亲昵</span>
+            </div>
+            <div class="slider-wrapper">
+              <input type="range" class="slider" min="1" max="7" value="4" step="1">
+              <div class="slider-ticks">
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="slider-item">
+            <div class="slider-labels">
+              <span>难听</span>
+              <span>悦耳</span>
+            </div>
+            <div class="slider-wrapper">
+              <input type="range" class="slider" min="1" max="7" value="4" step="1">
+              <div class="slider-ticks">
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+                <span class="tick"></span>
+              </div>
+            </div>
+          </div>
+          
+          
+        <style>
+          .slider-container { 
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+          }
+          .slider-item { 
+            margin: 30px 0; 
+          }
+          .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #555;
+          }
+          .slider-wrapper { 
+            position: relative;
+            padding: 15px 0;
+            width: 900px;
+            max-width: 90vw;
+          }
+          .slider { 
+            width: 100%;
+            margin: 0;
+            -webkit-appearance: none;
+            height: 8px;
+            background: #ddd;
+            border-radius: 4px;
+            outline: none;
+          }
+          .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4a90e2;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+          }
+          .slider-ticks {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            transform: translateY(-50%);
+          }
+          .tick {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            position: relative;
+          }
+          .tick:first-child,
+          .tick:last-child {
+            background: #666;
+          }
+          .tick:nth-child(4) {
+            background: #444;
+          }
+        </style>
+      `;
+    }
+
+    function initSliders() {
+      // 不需要显示数值，因为现在是7点量表
+      // 只需确保数据收集正确即可
+    }
+
+    jsPsych.run(timeline);
+  </script>
+</html>
